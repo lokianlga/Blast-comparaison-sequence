@@ -1,7 +1,8 @@
 # Blast-comparaison-sequence
-comparaison de sequence de nucleotide et de protéine avec blast en bash puis étude statistique et graphiques avec rstudio
+#comparaison de sequence de nucleotide et de protéine avec blast en bash puis étude statistique et graphiques avec rstudio
 
-Possibilité d'utiliser un SCRIPT BASH pour réaliser le BLAST des séquences : 
+#Possibilité d'utiliser un SCRIPT BASH pour réaliser le BLAST des séquences : 
+
 
 #!/bin/bash
 
