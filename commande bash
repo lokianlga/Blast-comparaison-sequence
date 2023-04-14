@@ -1,138 +1,87 @@
-connection à un cluster ABIMS :
+#connection à un cluster ABIMS :
   
 ssh <pseudo>@<adresse_du_cluster>
   
 exemple : ssh pseudo@bioinfo.sb-roscoff.fr
 
-puis rentrer votre mot de passe si demandé
+#puis rentrer votre mot de passe si demandé
 
-pour aller au bon endroit :
+#pour aller au bon endroit :
   
 cd /<chemin_ou_vous_voulez_aller>
 
 exemple : cd /shared/projects/carefree/archive
 
-pour lister de manière détaillée ce qui se trouve dans ce dossier :
+#pour lister de manière détaillée ce qui se trouve dans ce dossier :
   
 ls -l
 
-pour reprendre une commande déjà tapé au-dessus dans le terminal : 
+#pour reprendre une commande déjà tapé au-dessus dans le terminal : 
 
 utiliser la flèche vers le haut du clavier
 
-pour mettre un fichier depuis vos documents vers le dossier dans le cluster :
+#pour mettre un fichier depuis vos documents vers le dossier dans le cluster :
   
-utilisation de Filezilla :
+#utilisation de Filezilla :
   
 https://filezilla.fr/tutoriels/tutoriel-aide-support-apprendre-filezilla/
 
-quand vous êtes connecter, taper votre chemin du dossier dans le cluster 
+#quand vous êtes connecter, taper votre chemin du dossier dans le cluster 
 puis transférer à partir de vos documents
 
-coller deux fichiers fasta pour en créer un seul :
+#coller deux fichiers fasta pour en créer un seul :
   
 cat <nom1> <nom2> | less
 
 
-pour comparer les sequences nucleotidiques fichier fasta :
+#pour comparer les sequences nucleotidiques fichier fasta :
 
-installer blast :
+#installer blast :
   
 module load blast
 
-aide :
+#aide :
   
 blastn --help
 
-pour comparaison :
+#pour comparaison :
   
 makeblastdb -in <nom_du_fichier_avec_les_sequences> -dbtype nucl
 
 blastn -query <nom_du_fichier_avec_les_sequences.faa> -db <nom_du_fichier_avec_les_sequences.txt> -out <nom_du_fichier_de_sortie> -outfmt 6
 
-less permet de lire le fichier, q pour quitter la lecture
+#less permet de lire le fichier, q pour quitter la lecture
 
-format possible de sortie : 
+#format possible de sortie : 
 
 outfmt est le format de sortie
 
-format de sortie 6, option de base : 
+#format de sortie 6, option de base : 
 
 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore"
 
-format de sortie personnalisé : 
+#format de sortie personnalisé : 
 -outfmt "6 qseqid sseqid pident evalue"
 
 
+#Commande pour utiliser un script bash : 
 
-Possibilité d'utiliser un SCRIPT BASH pour faire la même chose qu'au dessus : 
+#Taper dans le terminal :
 
-#!/bin/bash
+"nano nom_du_fichier/script"
 
+#Puis copier coller le script (attention le shebang : #!/bin/bash doit toujours être sur la première ligne)
 
-#SBATCH --job-name=18S_blast
-#SBATCH --output=/shared/projects/carefree/Archives/test_jobcluster_%j.out
+#Enregistrer et fermer l'éditeur : 
 
+"ctrl x" suivi de “Y” suivi de "entrée"
 
-#SBATCH --mail-user lokianlga@gmail.com
-#SBATCH --mail-type ALL
+#Ainsi  un script a été créé dans le dossier
 
+#Pour pouvoir l'utiliser, utiliser la commande : 
 
-#SBATCH --time=24:00:00
+sbatch nom_du_script
 
+#Pour pouvoir voir où en est l'exécution du script,  utiliser : 
 
-#SBATCH --partition=fast
-
-
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem=32GB
-
-
-cd /shared/projects/carefree/Archives/test_jobcluster
-
-
-#installation de blast
-module load blast/2.13.0
-
-
-# permet d'afficher la date de début
-
-
-echo -e "\n##########################################"
-echo -e "Blast des séquences de 18S"
-echo -e "##########################################\n"
-
-
-date
-
-
-echo -e "\n"
-#création de la database avec les sequences
-makeblastdb -in /shared/projects/carefree/Archives/test_jobcluster/allseq -out /shared/projects/carefree/Archives/test_>
-
-
-#blast de nos sequences
-blastn -query /shared/projects/carefree/Archives/test_jobcluster/allseq -db /shared/projects/carefree/Archives/test_job>
-
-
-# permet d'afficher la date de fin
-date
-
-
-echo -e "\n##########################################"
-echo -e "Blast des séquences de 18S"
-echo -e "##########################################\n"
-
-
-Commande pour utiliser le script : 
-
-Taper dans le terminal "nano nom_du_fichier/script".
-Puis copier coller le script (attention le shebang : #!/bin/bash doit toujours être sur la première ligne).
-Tu peux ensuite enregistrer et fermer l'éditeur : "ctrl x" suivi de “Y” suivi de "entrée".
-
-Ainsi  un script a été créé dans ton dossier.
-
-Pour pouvoir l'utiliser, il suffit de taper en ligne de commande : “sbatch nom_du_script”
-
-Pour pouvoir voir où en est l'exécution du script,  utiliser : “squeue -u nom_utilisateur”
+squeue -u nom_utilisateur
