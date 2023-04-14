@@ -34,6 +34,7 @@ puis transférer à partir de vos documents
 cat <nom1> <nom2> | less
 
 
+
 #pour comparer les sequences nucleotidiques fichier fasta :
 
 #installer blast :
