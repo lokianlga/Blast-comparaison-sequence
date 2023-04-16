@@ -1,70 +1,83 @@
-#Importation des différentes librairies
+# 1)Importation des différentes librairies
 library(ggplot2)
 library(tidyr)
 library(tidyverse)
 library("ggpubr")
 library(plyr)
 
-#Importation des différents datasets
-Comparaisonprot = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/allseq.tsv",header=T)
-Comparaison = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/comparaisonmetdb",header=T)
+
+
+# 2)Importation des différents datasets
+#tableau des rangs taxonomiques
 metdb = read.csv2("C:/Users/lejeu/Documents/projet tut (lucie)/taxo_metdb.csv", header = T)
+#tableau des comparaisons de 18s
+Comparaisonprot = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/allseq.tsv",header=F)
+colnames(Comparaisonprot) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+#tableau des comparaisons protéique
+Comparaison = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/comparaisonmetdb",header=T)
 colnames(Comparaison) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
 
 
+
+# 3) Formatage des deux tableaux: protéique et 18 s
 #Duplication des colonnes des metdbid
+#18s
 Comparaison$individu1long<- Comparaison$individu1
 Comparaison$individu2long<- Comparaison$individu2
-
+#protéique
+#on garde que les pourcentages d'identité supérieur à 70%
+comprotin<-subset(Comparaisonprot,Comparaisonprot$`pourcentage-identité`>=70.00)
+comprotin$individu1long<- comprotin$individu1
+comprotin$individu2long<- comprotin$individu2
 #Relocalisation des colonnes nouvellement crées
+#18s
 Comparaison<-Comparaison %>% relocate(individu1long, .before = individu1)
 Comparaison<-Comparaison %>% relocate(individu2long, .before = individu2)
-
+#protéique
+comprotin<-comprotin %>% relocate(individu1long, .before = individu1)
+comprotin<-comprotin %>% relocate(individu2long, .before = individu2)
 #Supression des caractères inutiles à la suite de l'id metdb
+#18s
 Comparaison$individu1<-str_sub(Comparaison$individu1long,1,11)
 Comparaison$individu2<-str_sub(Comparaison$individu2long,1,11)
+#protéique
+comprotin$individu1<-str_sub(comprotin$individu1long,1,11)
+comprotin$individu2<-str_sub(comprotin$individu2long,1,11)
 
+
+
+# 4) Formatage du tableau METDB
 #Remplacement de caractères pour que les metdb id soient bien
-#les memes sur les deux tableaux
+#les memes sur les trois tableaux
 metdb$RS_metdbid<-str_replace(metdb$RS_metdbid, "_", "-")
-
-#SUR LE TABLEAU METDB
-#Remplacement de caractères pour que les metdb id soient bien
-#les memes sur les deux tableaux
-metdb$RS_metdbid<-str_replace(metdb$RS_metdbid, "_", "-")
-
 #Relocalisation de colonne pour plus de lisibilité et suppresion de colonne inutile
 newmetdb<-metdb %>% relocate(RS_metdbid, .before = taxPR2_kingdom)
 newmetdb<-newmetdb[,-2] 
 
-#Fusion des tableaux
-#Création d'un tableau intermédiaire
+
+
+# 5) Fusion des tableaux
+#Création d'un tableau intermédiaire 18s
+#Suppression de toutes les lignes où les espèces comparées sont les memes
+Comparaison<- subset(Comparaison, individu1 != individu2)
 interm<-merge(x=newmetdb,y=Comparaison,by.x='RS_metdbid',by.y='individu1')
 interm<-interm %>% relocate(individu1long, .before = RS_metdbid)
 interm<-rename(interm, c("RS_metdbid" = "individu1"))
+#Création d'un tableau intermédiaire protéique
+#Suppression de toutes les lignes où les espèces comparées sont les memes
+comprotde<- subset(comprotin, individu1 != individu2)
+pinterm<-merge(x=newmetdb,y=comprotde,by.x='RS_metdbid',by.y='individu1')
+pinterm<-pinterm %>% relocate(individu1long, .before = RS_metdbid)
+pinterm<-rename(pinterm, c("RS_metdbid" = "individu1"))
 
-#Création du tableau final
+
+
+# 6) Création des tableaux finaux
+#18s
 tfin<-merge(x=newmetdb,y=interm,by.x='RS_metdbid',by.y='individu2')
 tfin<-rename(tfin, c("RS_metdbid" = "individu2"))
 tfin<-tfin %>% relocate(individu2long, .before = 'individu2')
-
-#Suppression de toutes les lignes où les espèces comparées sont les memes
-tfina<- subset(tfin, individu1 != individu2)
-
-#STATISTIQUES ET ANALYSES
-#focalisation sur le pourcentage d'identité
-ggplot(tfina, aes(x=`pourcentage-identité`)) + 
-  geom_density()+ggtitle("Plot de densité du pourcentage d'identite")
-
-summary(tfina$`pourcentage-identité`)
-count(metdb, "taxPR2_phylum")
-
-#Creation d'un tableau intermédiaire ou il faut etre plus que deux dans le phyllum
-tfinter<- subset(tfina, count(metdb, "taxPR2_phylum") > 1)
-
-#Creation de deux tableaux avec phyllum différents ou égaux
-mmphy<-subset(tfinter, taxPR2_order.x == taxPR2_order.y)
-difphy<-subset(tfinter, taxPR2_order.x != taxPR2_order.y)
-
-p <- ggplot( aes(x=mmphy$`pourcentage-identité`, y=difphy$`pourcentage-identité`)) + 
-  geom_boxplot()
+#protéique
+pfin<-merge(x=newmetdb,y=pinterm,by.x='RS_metdbid',by.y='individu2')
+pfin<-rename(pfin, c("RS_metdbid" = "individu2"))
+pfin<-pfin %>% relocate(individu2long, .before = 'individu2')
