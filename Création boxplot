@@ -1,0 +1,66 @@
+#Création de boxplot de comparaison intra-spécifique et d'un boxplot général inter-spécifique
+
+#tableau constitué seulement de comparaison intraspécifiques
+tintra<- subset(tfin, taxPR2_order.x == taxPR2_order.y)
+pintra<- subset(pfin, taxPR2_order.x == taxPR2_order.y)
+
+#tableau constitué seulement de comparaison interspécifiques
+tinter<- subset(tfin, taxPR2_order.x != taxPR2_order.y)
+pinter<- subset(pfin, taxPR2_order.x != taxPR2_order.y)
+
+#boxplot de comparaison de pourcentage d'identité intraspécifique et interspécifiques
+
+par(mfrow=c(2,2))
+boxplot(tinter$`pourcentage-identité`, 
+        main = "18S Interspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(pinter$`pourcentage-identité`,
+        main = "Protéines Interspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(tintra$`pourcentage-identité`,
+        main = "18S Intraspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(pintra$`pourcentage-identité`,
+        main = "Protéines Intraspécifique",
+        ylab = "Pourcentage d'identité")
+
+
+#moyenne des pourcentages d'identités intraspécifique ou interspécifiques
+mean(pinter$`pourcentage-identité`)
+mean(pintra$`pourcentage-identité`)
+
+mean(tinter$`pourcentage-identité`)
+mean(tintra$`pourcentage-identité`)
+
+
+
+
+#permet de générer un boxplot pour chaque ordre des 18S intraspécifique
+#il suffit de changer la valeur de 1, de 1 jusqu'au maximum obtenue avec count et on peut exporter les boxplots aux furs et à mesure
+
+count(tintra$taxPR2_order.x)
+b<-c(count(tintra$taxPR2_order.x))
+list_order<-b$x
+list_numb<-b$freq
+
+par(mfrow=c(2,2))
+i=1
+boxplot(tintra$`pourcentage-identité`[tintra$taxPR2_order.x == list_order[i]])
+title(main = list_order[i], ylab = "pourcentage d'identité", xlab = list_numb[i])
+
+
+
+#permet de générer un boxplot pour chaque espèce des protéines intraspécifique
+count(pintra$taxPR2_species.x)
+d<-c(count(pintra$taxPR2_species.x))
+list_order<-d$x
+list_numb<-d$freq
+
+par(mfrow=c(2,2))
+i=1
+boxplot(pintra$`pourcentage-identité`[pintra$taxPR2_species.x == list_order[i]])
+title(main = list_order[i], ylab = "pourcentage d'identité", xlab = list_numb[i])
+
