@@ -1,0 +1,68 @@
+# 7) Statistiques
+#Création de tableaux avec uniquement des comparaiosns d'individus d'ordre différent et inverse
+#18s
+mm18s<-subset(tfin, taxPR2_family.x == taxPR2_family.y)
+dif18s<-subset(tfin, taxPR2_family.x != taxPR2_family.y)
+#prot
+mmpro<-subset(pfin, taxPR2_family.x == taxPR2_family.y)
+difpro<-subset(pfin, taxPR2_family.x != taxPR2_family.y)
+
+#Création d'une colonne qui fusionne les metdb_id
+mm18s$met_bloc <-paste(mm18s$individu1,mm18s$individu2,sep="_")
+mmpro$met_bloc <-paste(mmpro$individu1,mmpro$individu2,sep="_")
+count(mm18s$met_bloc)
+count(mmpro$met_bloc)
+
+#Création d'un tableau avec un minimum de colonnes
+minim18s <- mm18s[ , - c(3:5,7:9,12:14,16:18,20:28)]
+minimpro <- mmpro[ , - c(3:5,7:9,12:14,16:18,20:28)]
+
+
+#Création d'un mini tableau avec les moyennes de pourcentage d'identité 18s
+a<-c(count(mm18s$met_bloc))
+tab_compte<- data.frame(x = a$x, y = a$freq) 
+j<-data.frame(rowsum(minim18s$'pourcentage-identité', minim18s$met_bloc))
+q<-as.data.frame(row.names(j))
+colnames(j) <- c('pourc')
+q$pourcen<-j$pourc
+k<-merge(x=q,y=tab_compte,by.x='row.names(j)',by.y='x')
+k$pourcen<-(k$pourcen)/(k$y)
+colnames(k)<-c('metdb_id','pourcen18s','y')
+le18s<-k[,-3]
+
+#Création d'un mini tableau avec les moyennes de pourcentage d'identité protéique
+b<-c(count(mmpro$met_bloc))
+tab_pro<- data.frame(x = b$x, y = b$freq) 
+u<-data.frame(rowsum(minimpro$'pourcentage-identité', minimpro$met_bloc))
+f<-as.data.frame(row.names(u))
+colnames(u) <- c('pourc')
+f$pourcen<-u$pourc
+s<-merge(x=f,y=tab_pro,by.x='row.names(u)',by.y='x')
+s$pourcen<-(s$pourcen)/(s$y)
+colnames(s)<-c('metdb_id','pourcenpro','y')
+lepro<-s[,-3]
+
+#Création d'un tableau fusionnant les deux
+fusi<-merge(x=lepro,y=le18s)
+fusi$met_db2 <-paste(fusi$metdb_id)
+fusi<-fusi %>% relocate(met_db2, .before = metdb_id)
+fusi$met_db2<-str_sub(fusi$met_db2,1,11)
+fusi$metdb_id<-str_sub(fusi$metdb_id,13,23)
+
+#regroupement avec le tableau de taxonomie
+margo<-merge(x=newmetdb,y=fusi,by.x='RS_metdbid',by.y='met_db2')
+bomargo<-merge(x=newmetdb,y=margo,by.x='RS_metdbid',by.y='metdb_id')
+
+
+
+
+
+#projeté graphique
+p <- ggplot(bomargo, aes(x = `pourcenpro`, y = `pourcen18s`)) +
+  geom_smooth(data = bomargo, method = "lm", linetype="dashed",
+              color="darkred", fill="blue",alpha=1,
+              se = FALSE, col = "#ee1515") +
+  labs(title = "Relation entre les poucentages \n d'identité protéique et 18s")+
+  geom_point() 
+  
+p
