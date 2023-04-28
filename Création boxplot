@@ -1,5 +1,7 @@
 #Création de boxplot de comparaison intra-spécifique et d'un boxplot général inter-spécifique
 
+# 1)
+
 #tableau constitué seulement de comparaison intraspécifiques
 tintra<- subset(tfin, taxPR2_order.x == taxPR2_order.y)
 pintra<- subset(pfin, taxPR2_order.x == taxPR2_order.y)
@@ -35,8 +37,32 @@ mean(pintra$`pourcentage-identité`)
 mean(tinter$`pourcentage-identité`)
 mean(tintra$`pourcentage-identité`)
 
+# 2)
 
+#boxplot 18s et protéines
+boxplot(tintra$'pourcentage-identité' ~ tintra$'taxPR2_order.x', tintra) 
 
+boxplot(pintra$'pourcentage-identité' ~ pintra$'taxPR2_genus.x', pintra) 
+
+#boxplot en serie 18s au niveau de l'ordre
+ggplot(data = tintra, aes(x=tintra$'taxPR2_order.x', y=tintra$'pourcentage-identité')) + geom_boxplot(aes(fill=tintra$'taxPR2_order.x'))
+#test de rajout du 18s inter
+ggplot(data = tintra, aes(x=tintra$'taxPR2_order.x', y=tintra$'pourcentage-identité'), aes(x=tinter$'taxPR2_order.x',y=tinter$'pourcentage-identité')) + geom_boxplot(aes(fill=tintra$'taxPR2_order.x'))
+
+#boxplot en serie protéines au niveau de l'ordre
+ggplot(data = pintra, aes(x=pintra$'taxPR2_order.x', y=pintra$'pourcentage-identité')) + geom_boxplot(aes(fill=pintra$'taxPR2_order.x'))
+
+#fusion intraspécifique au niveau de l'espèce pour 18s et du genre pour protéines
+tintrae<- subset(tfin, taxPR2_genus_species.x == taxPR2_genus_species.y)
+pintrae<- subset(pfin, taxPR2_genus.x == taxPR2_genus.y)
+
+#boxplot en serie 18s au niveau de l'espèce
+ggplot(data = tintrae, aes(x=tintrae$taxPR2_genus_species.x, y=tintrae$'pourcentage-identité')) + geom_boxplot(aes(fill=tintrae$taxPR2_genus_species.x))
+
+#boxplot en serie protéines au niveau du genre
+ggplot(data = pintrae, aes(x=pintrae$taxPR2_genus_species.x, y=pintrae$'pourcentage-identité')) + geom_boxplot(aes(fill=pintrae$taxPR2_genus_species.x))
+
+# 3)
 
 #permet de générer un boxplot pour chaque ordre des 18S intraspécifique
 #il suffit de changer la valeur de 1, de 1 jusqu'au maximum obtenue avec count et on peut exporter les boxplots aux furs et à mesure
