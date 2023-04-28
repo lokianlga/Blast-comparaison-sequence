@@ -1,4 +1,44 @@
-# 7) Statistiques
+# Statistiques
+
+# 1)
+
+##18S création histogramme
+#colonne inter et intra au niveau de l'espèce
+tfin$espèce<-with(tfin,ifelse(tfin$taxPR2_genus_species.x == tfin$taxPR2_genus_species.y,'intra','inter'))
+
+#histogramme de deux couleurs
+p <- ggplot(tfin, aes(x=`pourcentage-identité`, fill = espèce, color=espèce)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+
+#colonne inter et intra au niveau de l'ordre
+tfin$ordre<-with(tfin,ifelse(tfin$taxPR2_order.x == tfin$taxPR2_order.y,'intra','inter'))
+#histogramme de deux couleurs
+p <- ggplot(tfin, aes(x=`pourcentage-identité`, fill = ordre, color=ordre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+
+##Protéines création histogramme
+#colonne inter et intra au niveau du genre
+pfin$genre<-with(pfin,ifelse(pfin$taxPR2_genus.x == pfin$taxPR2_genus.y,'intra','inter'))
+
+#histogramme de deux couleurs
+p <- ggplot(pfin, aes(x=`pourcentage-identité`, fill = genre, color=genre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+#colonne inter et intra au niveau de l'ordre
+pfin$ordre<-with(pfin,ifelse(pfin$taxPR2_order.x == pfin$taxPR2_order.y,'intra','inter'))
+
+#histogramme de deux couleurs
+p <- ggplot(pfin, aes(x=`pourcentage-identité`, fill = ordre, color=ordre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+# 2)
+
 #Création de tableaux avec uniquement des comparaiosns d'individus d'ordre différent et inverse
 #18s
 mm18s<-subset(tfin, taxPR2_family.x == taxPR2_family.y)
