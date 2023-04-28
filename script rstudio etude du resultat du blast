@@ -81,3 +81,19 @@ tfin<-tfin %>% relocate(individu2long, .before = 'individu2')
 pfin<-merge(x=newmetdb,y=pinterm,by.x='RS_metdbid',by.y='individu2')
 pfin<-rename(pfin, c("RS_metdbid" = "individu2"))
 pfin<-pfin %>% relocate(individu2long, .before = 'individu2')
+
+
+# 7) fusion des colonnes genus et species dans les quatres tableaux 
+tintra$taxPR2_genus_species.x <- paste(tintra$taxPR2_genus.x, tintra$taxPR2_species.x, sep="_")
+tintra$taxPR2_genus_species.y <- paste(tintra$taxPR2_genus.y, tintra$taxPR2_species.y, sep="_")
+
+pintra$taxPR2_genus_species.x <- paste(pintra$taxPR2_genus.x, pintra$taxPR2_species.x, sep="_")
+pintra$taxPR2_genus_species.y <- paste(pintra$taxPR2_genus.y, pintra$taxPR2_species.y, sep="_")
+
+
+tfin$taxPR2_genus_species.x <- paste(tfin$taxPR2_genus.x, tfin$taxPR2_species.x, sep="_")
+tfin$taxPR2_genus_species.y <- paste(tfin$taxPR2_genus.y, tfin$taxPR2_species.y, sep="_")
+
+pfin$taxPR2_genus_species.x <- paste(pfin$taxPR2_genus.x, pfin$taxPR2_species.x, sep="_")
+pfin$taxPR2_genus_species.y <- paste(pfin$taxPR2_genus.y, pfin$taxPR2_species.y, sep="_")
+
