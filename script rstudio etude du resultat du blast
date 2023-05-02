@@ -38,7 +38,7 @@ Comparaison$individu1long<- Comparaison$individu1
 Comparaison$individu2long<- Comparaison$individu2
 #protéique
 #on garde que les pourcentages d'identité supérieur à 70%
-comprotin<-subset(Comparaisonprot,Comparaisonprot$`pourcentage-identité`>=70.00)
+comprotin<-Comparaisonprot
 comprotin$individu1long<- comprotin$individu1
 comprotin$individu2long<- comprotin$individu2
 #Relocalisation des colonnes nouvellement crées
