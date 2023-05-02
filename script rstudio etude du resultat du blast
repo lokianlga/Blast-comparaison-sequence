@@ -9,19 +9,31 @@ library(plyr)
 
 # 2)Importation des différents datasets
 #tableau des rangs taxonomiques
-metdb = read.csv2("C:/Users/lejeu/Documents/projet tut (lucie)/taxo_metdb.csv", header = T)
+taxo= read.table("/shared/projects/carefree/taxo_metdb.csv", sep=';',header = T)
+head(taxo)
 #tableau des comparaisons de 18s
-Comparaisonprot = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/allseq.tsv",header=F)
-colnames(Comparaisonprot) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
-#tableau des comparaisons protéique
-Comparaison = read.table("C:/Users/lejeu/Documents/projet tut (lucie)/comparaisonmetdb",header=T)
-colnames(Comparaison) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+Comparaison18 = read.table("/shared/projects/carefree/Archives/test_jobcluster/comparaison_blast",header=F)
+colnames(Comparaison18) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+head(Comparaison18)
 
+
+#tableau des comparaisons protéique
+Comparaisonprot = read.table("/shared/projects/carefree/input/diamond/sequences/allseq.tsv",header=F)
+colnames(Comparaisonprot) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+head(Comparaisonprot)
+
+
+#tableau de tous les individus utilisés
+seqdonut = read.table("/shared/projects/carefree/archive/nb18S_perStrain",header=F)
+
+head(seqdonut)
 
 
 # 3) Formatage des deux tableaux: protéique et 18 s
 #Duplication des colonnes des metdbid
+metdb<-taxo
 #18s
+Comparaison<- Comparaison18 
 Comparaison$individu1long<- Comparaison$individu1
 Comparaison$individu2long<- Comparaison$individu2
 #protéique
