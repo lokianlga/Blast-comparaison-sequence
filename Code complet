@@ -1,0 +1,493 @@
+##Cluster
+
+#connection à un cluster ABIMS :
+  
+ssh <pseudo>@<adresse_du_cluster>
+  
+exemple : ssh pseudo@bioinfo.sb-roscoff.fr
+
+#puis rentrer votre mot de passe si demandé
+
+#pour aller au bon endroit :
+  
+cd /<chemin_ou_vous_voulez_aller>
+
+exemple : cd /shared/projects/carefree/archive
+
+#pour lister de manière détaillée ce qui se trouve dans ce dossier :
+  
+ls -l
+
+#pour reprendre une commande déjà tapé au-dessus dans le terminal : 
+
+utiliser la flèche vers le haut du clavier
+
+#pour mettre un fichier depuis vos documents vers le dossier dans le cluster :
+  
+#utilisation de Filezilla :
+  
+https://filezilla.fr/tutoriels/tutoriel-aide-support-apprendre-filezilla/
+
+#quand vous êtes connecter, taper votre chemin du dossier dans le cluster 
+puis transférer à partir de vos documents
+
+#coller deux fichiers fasta pour en créer un seul :
+  
+cat <nom1> <nom2> | less
+
+
+##
+#pour comparer les sequences nucleotidiques fichier fasta :
+
+#installer blast :
+  
+module load blast
+
+#aide :
+  
+blastn --help
+
+#pour comparaison :
+  
+makeblastdb -in <nom_du_fichier_avec_les_sequences> -dbtype nucl
+
+blastn -query <nom_du_fichier_avec_les_sequences.faa> -db <nom_du_fichier_avec_les_sequences.txt> -out <nom_du_fichier_de_sortie> -outfmt 6
+
+#less permet de lire le fichier, q pour quitter la lecture
+
+#format possible de sortie : 
+
+outfmt est le format de sortie
+
+#format de sortie 6, option de base : 
+
+-outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore"
+
+#format de sortie personnalisé : 
+-outfmt "6 qseqid sseqid pident evalue"
+
+
+#Commande pour utiliser un script bash : 
+
+#Taper dans le terminal :
+
+"nano nom_du_fichier/script"
+
+#Puis copier coller le script (attention le shebang : #!/bin/bash doit toujours être sur la première ligne)
+
+#Enregistrer et fermer l'éditeur : 
+
+"ctrl x" suivi de “Y” suivi de "entrée"
+
+#Ainsi  un script a été créé dans le dossier
+
+#Pour pouvoir l'utiliser, utiliser la commande : 
+
+sbatch nom_du_script
+
+#Pour pouvoir voir où en est l'exécution du script,  utiliser : 
+
+squeue -u nom_utilisateur
+
+
+#Exemple de script bash
+
+Blast-comparaison-sequence
+#comparaison de sequence de nucleotide et de protéine avec blast en bash puis étude statistique et graphiques avec rstudio
+
+#Possibilité d'utiliser un SCRIPT BASH pour réaliser le BLAST des séquences :
+
+#####################################################################################################################################################
+#!/bin/bash
+
+#SBATCH --job-name=18S_blast #SBATCH --output=/shared/projects/carefree/Archives/test_jobcluster_%j.out
+
+#SBATCH --mail-user lokianlga@gmail.com #SBATCH --mail-type ALL
+
+#SBATCH --time=24:00:00
+
+#SBATCH --partition=fast
+
+#SBATCH --nodes=1 #SBATCH --cpus-per-task=10 #SBATCH --mem=32GB
+
+cd /shared/projects/carefree/Archives/test_jobcluster
+
+#installation de blast module load blast/2.13.0
+
+permet d'afficher la date de début
+echo -e "\n##########################################" echo -e "Blast des séquences de 18S" echo -e "##########################################\n"
+
+date
+
+echo -e "\n" #création de la database avec les sequences makeblastdb -in /shared/projects/carefree/Archives/test_jobcluster/allseq -out /shared/projects/carefree/Archives/test_>
+
+#blast de nos sequences blastn -query /shared/projects/carefree/Archives/test_jobcluster/allseq -db /shared/projects/carefree/Archives/test_job>
+
+permet d'afficher la date de fin
+date
+
+echo -e "\n##########################################" echo -e "Blast des séquences de 18S" echo -e "##########################################\n"
+
+#########################################################################################################################################################
+
+#pour comparaison protéique, réalisation d'unscript similaire mais utilisation de l'outil diamond
+
+#voir aide :
+  
+diamond --help
+
+
+#récupération du tableau metDB pour la taxonomie de nos individus
+
+https://metdb.sb-roscoff.fr/metdb/ 
+
+
+#######################################################################################################################################################
+#######################################################################################################################################################
+
+##Passage sur Rstudio :
+
+# 1)Importation des différentes librairies
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+library("ggpubr")
+library(plyr)
+
+
+
+# 2)Importation des différents datasets
+#tableau des rangs taxonomiques
+taxo= read.table("/shared/projects/carefree/taxo_metdb.csv", sep=';',header = T)
+head(taxo)
+#tableau des comparaisons de 18s
+Comparaison18 = read.table("/shared/projects/carefree/Archives/test_jobcluster/comparaison_blast",header=F)
+colnames(Comparaison18) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+head(Comparaison18)
+
+
+#tableau des comparaisons protéique
+Comparaisonprot = read.table("/shared/projects/carefree/input/diamond/sequences/allseq.tsv",header=F)
+colnames(Comparaisonprot) <- c("individu1","individu2","pourcentage-identité","taille-alignement","mismatch","gapopen","debut-individu1","fin-individu1","debut-individu2","fin-individu2","evalue","bitscore")
+head(Comparaisonprot)
+
+
+#tableau de tous les individus utilisés
+seqdonut = read.table("/shared/projects/carefree/archive/nb18S_perStrain",header=F)
+
+head(seqdonut)
+
+
+# 3) Formatage des deux tableaux: protéique et 18 s
+#Duplication des colonnes des metdbid
+metdb<-taxo
+#18s
+Comparaison<- Comparaison18 
+Comparaison$individu1long<- Comparaison$individu1
+Comparaison$individu2long<- Comparaison$individu2
+#protéique
+#on garde que les pourcentages d'identité supérieur à 70%
+comprotin<-Comparaisonprot
+comprotin$individu1long<- comprotin$individu1
+comprotin$individu2long<- comprotin$individu2
+#Relocalisation des colonnes nouvellement crées
+#18s
+Comparaison<-Comparaison %>% relocate(individu1long, .before = individu1)
+Comparaison<-Comparaison %>% relocate(individu2long, .before = individu2)
+#protéique
+comprotin<-comprotin %>% relocate(individu1long, .before = individu1)
+comprotin<-comprotin %>% relocate(individu2long, .before = individu2)
+#Supression des caractères inutiles à la suite de l'id metdb
+#18s
+Comparaison$individu1<-str_sub(Comparaison$individu1long,1,11)
+Comparaison$individu2<-str_sub(Comparaison$individu2long,1,11)
+#protéique
+comprotin$individu1<-str_sub(comprotin$individu1long,1,11)
+comprotin$individu2<-str_sub(comprotin$individu2long,1,11)
+
+
+
+# 4) Formatage du tableau METDB
+#Remplacement de caractères pour que les metdb id soient bien
+#les memes sur les trois tableaux
+metdb$RS_metdbid<-str_replace(metdb$RS_metdbid, "_", "-")
+#Relocalisation de colonne pour plus de lisibilité et suppresion de colonne inutile
+newmetdb<-metdb %>% relocate(RS_metdbid, .before = taxPR2_kingdom)
+newmetdb<-newmetdb[,-2] 
+
+
+
+# 5) Fusion des tableaux
+#Création d'un tableau intermédiaire 18s
+#Suppression de toutes les lignes où les espèces comparées sont les memes
+Comparaison<- subset(Comparaison, individu1 != individu2)
+interm<-merge(x=newmetdb,y=Comparaison,by.x='RS_metdbid',by.y='individu1')
+interm<-interm %>% relocate(individu1long, .before = RS_metdbid)
+interm<-rename(interm, c("RS_metdbid" = "individu1"))
+#Création d'un tableau intermédiaire protéique
+#Suppression de toutes les lignes où les espèces comparées sont les memes
+comprotde<- subset(comprotin, individu1 != individu2)
+pinterm<-merge(x=newmetdb,y=comprotde,by.x='RS_metdbid',by.y='individu1')
+pinterm<-pinterm %>% relocate(individu1long, .before = RS_metdbid)
+pinterm<-rename(pinterm, c("RS_metdbid" = "individu1"))
+
+
+
+# 6) Création des tableaux finaux
+#18s
+tfin<-merge(x=newmetdb,y=interm,by.x='RS_metdbid',by.y='individu2')
+tfin<-rename(tfin, c("RS_metdbid" = "individu2"))
+tfin<-tfin %>% relocate(individu2long, .before = 'individu2')
+#protéique
+pfin<-merge(x=newmetdb,y=pinterm,by.x='RS_metdbid',by.y='individu2')
+pfin<-rename(pfin, c("RS_metdbid" = "individu2"))
+pfin<-pfin %>% relocate(individu2long, .before = 'individu2')
+
+
+# 7) fusion des colonnes genus et species dans les quatres tableaux 
+tintra$taxPR2_genus_species.x <- paste(tintra$taxPR2_genus.x, tintra$taxPR2_species.x, sep="_")
+tintra$taxPR2_genus_species.y <- paste(tintra$taxPR2_genus.y, tintra$taxPR2_species.y, sep="_")
+
+pintra$taxPR2_genus_species.x <- paste(pintra$taxPR2_genus.x, pintra$taxPR2_species.x, sep="_")
+pintra$taxPR2_genus_species.y <- paste(pintra$taxPR2_genus.y, pintra$taxPR2_species.y, sep="_")
+
+
+tfin$taxPR2_genus_species.x <- paste(tfin$taxPR2_genus.x, tfin$taxPR2_species.x, sep="_")
+tfin$taxPR2_genus_species.y <- paste(tfin$taxPR2_genus.y, tfin$taxPR2_species.y, sep="_")
+
+pfin$taxPR2_genus_species.x <- paste(pfin$taxPR2_genus.x, pfin$taxPR2_species.x, sep="_")
+pfin$taxPR2_genus_species.y <- paste(pfin$taxPR2_genus.y, pfin$taxPR2_species.y, sep="_")
+
+####################################################################################################################################################
+
+##18S création histogramme
+
+#colonne inter et intra au niveau de l'espèce
+tfin$espèce<-with(tfin,ifelse(tfin$taxPR2_genus_species.x == tfin$taxPR2_genus_species.y,'intra','inter'))
+#histogramme de deux couleurs
+p <- ggplot(tfin, aes(x=`pourcentage-identité`, fill = espèce, color=espèce)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+
+
+#colonne inter et intra au niveau de l'ordre
+tfin$ordre<-with(tfin,ifelse(tfin$taxPR2_order.x == tfin$taxPR2_order.y,'intra','inter'))
+#histogramme de deux couleurs
+p <- ggplot(tfin, aes(x=`pourcentage-identité`, fill = ordre, color=ordre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+
+
+##Protéines création histogramme
+
+#colonne inter et intra au niveau du genre
+pfin$genre<-with(pfin,ifelse(pfin$taxPR2_genus.x == pfin$taxPR2_genus.y,'intra','inter'))
+#histogramme de deux couleurs
+p <- ggplot(pfin, aes(x=`pourcentage-identité`, fill = genre, color=genre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+
+#colonne inter et intra au niveau de l'ordre
+pfin$ordre<-with(pfin,ifelse(pfin$taxPR2_order.x == pfin$taxPR2_order.y,'intra','inter'))
+#histogramme de deux couleurs
+p <- ggplot(pfin, aes(x=`pourcentage-identité`, fill = ordre, color=ordre)) + geom_histogram(position="identity", alpha = 0.5)
+p+scale_color_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="Dark2")
+
+#####################################################################################################################################################
+
+
+#Création de boxplot de comparaison intra-spécifique et d'un boxplot général inter-spécifique
+
+# 1)création de boxplots généraux
+
+#tableau constitué seulement de comparaison intraspécifiques
+tintra<- subset(tfin, taxPR2_order.x == taxPR2_order.y)
+pintra<- subset(pfin, taxPR2_order.x == taxPR2_order.y)
+
+#tableau constitué seulement de comparaison interspécifiques
+tinter<- subset(tfin, taxPR2_order.x != taxPR2_order.y)
+pinter<- subset(pfin, taxPR2_order.x != taxPR2_order.y)
+
+#boxplot de comparaison de pourcentage d'identité intraspécifique et interspécifiques
+
+par(mfrow=c(2,2))
+boxplot(tinter$`pourcentage-identité`, 
+        main = "18S Interspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(pinter$`pourcentage-identité`,
+        main = "Protéines Interspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(tintra$`pourcentage-identité`,
+        main = "18S Intraspécifique",
+        ylab = "Pourcentage d'identité")
+
+boxplot(pintra$`pourcentage-identité`,
+        main = "Protéines Intraspécifique",
+        ylab = "Pourcentage d'identité")
+
+
+#moyenne des pourcentages d'identités intraspécifique ou interspécifiques
+mean(pinter$`pourcentage-identité`)
+mean(pintra$`pourcentage-identité`)
+
+mean(tinter$`pourcentage-identité`)
+mean(tintra$`pourcentage-identité`)
+
+# 2)#boxplot en serie 18s et protéines
+
+###boxplot 18s
+##boxplot en serie 18s au niveau de l’espèce
+#création du tableau inter au niveau de l’espèce
+tinteres<- subset(tfin, taxPR2_genus_species.x != taxPR2_genus_species.y)
+#création du tableau intra au niveau de l’espèce
+tintraes<- subset(tfin, taxPR2_genus_species.x == taxPR2_genus_species.y)
+#remplacement des noms d’espèces par “1_Inter” dans la tableau inter
+tinteres <- replace(tinteres, 'taxPR2_genus_species.x', '1_Inter')
+#combinaison du tableau inter et du tableau intra
+trotes<-  rbind (tintraes, tinteres)
+
+#création du boxplot en série 
+ggplot(data = trotes, aes(x=trotes$'taxPR2_genus_species.x', y=trotes$'pourcentage-identité')) + geom_boxplot(aes(fill=trotes$'taxPR2_genus_species.x'))
+
+
+##boxplot en serie 18s au niveau du phylum
+
+#création du tableau inter au niveau du phylum
+tinterphy<- subset(tfin, taxPR2_phylum.x != taxPR2_phylum.y)
+#création du tableau intra au niveau du phylum
+tintraphy<- subset(tfin, taxPR2_phylum.x == taxPR2_phylum.y)
+#remplacement des noms de phylum par “1_Inter” dans la tableau inter
+tinterphy <- replace(tinterphy, 'taxPR2_phylum.x', '1_Inter')
+#combinaison du tableau inter et du tableau intra
+trotphy<-  rbind (tintraphy, tinterphy)
+
+#création du boxplot en série 
+ggplot(data = trotphy, aes(x=trotphy$'taxPR2_phylum.x', y=trotphy$'pourcentage-identité')) + geom_boxplot(aes(fill=trotphy$'taxPR2_phylum.x'))
+
+##############
+
+###boxplot protéines
+##boxplot en serie protéines au niveau de l’espèce
+#création du tableau inter au niveau de l’espèce
+pinteres<- subset(pfin, taxPR2_genus_species.x != taxPR2_genus_species.y)
+#création du tableau intra au niveau de l’espèce
+pintraes<- subset(pfin, taxPR2_genus_species.x == taxPR2_genus_species.y)
+#remplacement des noms d’espèces par “1_Inter” dans la tableau inter
+pinteres <- replace(pinteres, 'taxPR2_genus_species.x', '1_Inter')
+#combinaison du tableau inter et du tableau intra
+protes<-  rbind (pintraes, pinteres)
+
+#création du boxplot en série 
+ggplot(data = protes, aes(x=protes$'taxPR2_genus_species.x', y=protes$'pourcentage-identité')) + geom_boxplot(aes(fill=protes$'taxPR2_genus_species.x'))
+
+
+##boxplot en serie protéines au niveau du phylum
+
+#création du tableau inter au niveau du phylum
+pinterphy<- subset(pfin, taxPR2_phylum.x != taxPR2_phylum.y)
+#création du tableau intra au niveau du phylum
+pintraphy<- subset(pfin, taxPR2_phylum.x == taxPR2_phylum.y)
+#remplacement des noms de phylum par “1_Inter” dans la tableau inter
+pinterphy <- replace(pinterphy, 'taxPR2_phylum.x', '1_Inter')
+#combinaison du tableau inter et du tableau intra
+protphy<-  rbind (pintraphy, pinterphy)
+
+#création du boxplot en série 
+ggplot(data = protphy, aes(x=protphy$'taxPR2_phylum.x', y=protphy$'pourcentage-identité')) + geom_boxplot(aes(fill=protphy$'taxPR2_phylum.x'))
+
+
+
+#################
+
+#permet de générer un boxplot pour chaque ordre des 18S intraspécifique
+#il suffit de changer la valeur de 1, de 1 jusqu'au maximum obtenue avec count et on peut exporter les boxplots aux furs et à mesure
+
+count(tintra$taxPR2_order.x)
+b<-c(count(tintra$taxPR2_order.x))
+list_order<-b$x
+list_numb<-b$freq
+
+par(mfrow=c(2,2))
+i=1
+boxplot(tintra$`pourcentage-identité`[tintra$taxPR2_order.x == list_order[i]])
+title(main = list_order[i], ylab = "pourcentage d'identité", xlab = list_numb[i])
+
+
+
+#permet de générer un boxplot pour chaque espèce des protéines intraspécifique
+count(pintra$taxPR2_species.x)
+d<-c(count(pintra$taxPR2_species.x))
+list_order<-d$x
+list_numb<-d$freq
+
+par(mfrow=c(2,2))
+i=1
+boxplot(pintra$`pourcentage-identité`[pintra$taxPR2_species.x == list_order[i]])
+title(main = list_order[i], ylab = "pourcentage d'identité", xlab = list_numb[i])
+
+###############################################################################################################################################
+
+##réalisation d'une figure de comparaison du 18s et des protéines
+#projeté graphique
+p <- ggplot(bomargo, aes(x = `pourcenpro`, y = `pourcen18s`,color=taxPR2_phylum.x)) +
+  geom_smooth(data = bomargo, method = "lm", linetype="dashed",
+              color="darkred", fill="blue",alpha=1,
+              se = FALSE, col = "#ee1515") +
+  labs(title = "Relation entre les poucentages \n d'identité protéique et 18s")+
+  geom_point()
+p
+
+
+
+############################################################################################################################################
+
+#representation de la part des différents phylums dans nos données
+
+seqdonut = read.table(file.choose(),header=F)#tableau avec les 279 metdb utilisés
+metdb = read.csv2(file.choose(), header = T)#tableau avec la taxonomie
+
+colnames(seqdonut) <- c('va1','va2')
+seqdonut$va2<-str_sub(seqdonut$va2,2,12)
+seqdonut #création d'un tableau avec de colonnes nommés de 279 metdb
+metdb$RS_metdbid<-str_replace(metdb$RS_metdbid, "_", "-")
+
+doonut<-merge(x=seqdonut,y=metdb,by.x='va2',by.y='RS_metdbid')
+jo<-doonut[!duplicated(doonut$va2), ]
+
+b<-c(count(jo$taxPR2_phylum))
+tab_pro<- data.frame(x = b$x, y = b$freq) 
+
+tab_pro$y<-(tab_pro$y/279)*100
+#tab_pro est un tableau qui inclue le pourcentage de chaque phylum
+
+#Observation du tableau et séléction manuelle des phylums les plus représentés
+df <- data.frame(value = c(33.0, 16.8, 14.0, 13.6,5,22.6),
+                 group = c("Ochrophyta","Dinoflagellata","Haptophyta","Chlorophyta","Cercozoa",
+                           "Autres"))
+
+
+#Projeté graphique en donut
+# Hole size
+hsize <- 1.5
+
+df <- df %>% 
+  mutate(x = hsize)
+
+go<- ggplot(df, aes(x = hsize, y = value, fill = group)) +
+  ggtitle("Graphique 'donut' des différents phylum \nde notre échantillon (en pourcentage) ")+
+  geom_col(color = "black") +
+  geom_label(aes(label = value),
+             position = position_stack(vjust = 0.5),
+             show.legend = FALSE) +
+  coord_polar(theta = "y") +
+  xlim(c(0.2, hsize + 0.5))
+
+print(go + labs(fill = "Phylum"))
+
+
