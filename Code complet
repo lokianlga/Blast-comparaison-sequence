@@ -147,6 +147,8 @@ https://metdb.sb-roscoff.fr/metdb/
 
 ##Passage sur Rstudio :
 
+setwd("/shared/projects/carefree/")
+
 # 1)Importation des différentes librairies
 library(ggplot2)
 library(tidyr)
@@ -186,7 +188,6 @@ Comparaison<- Comparaison18
 Comparaison$individu1long<- Comparaison$individu1
 Comparaison$individu2long<- Comparaison$individu2
 #protéique
-#on garde que les pourcentages d'identité supérieur à 70%
 comprotin<-Comparaisonprot
 comprotin$individu1long<- comprotin$individu1
 comprotin$individu2long<- comprotin$individu2
